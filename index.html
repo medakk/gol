@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Game of Life</title>
+        <meta charset="utf-8" >
+
+        <style >
+            #canvasGol {
+                border-style: solid;
+                border-color: #AAAAAA;
+                border-width: medium;
+                padding: 0px;
+                margin: auto;
+                display: block;
+            }
+
+            h1 {
+                text-align: center;
+                font-family: sans-serif;
+            }
+        </style>
+
+        <!-- defer makes the script execute AFTER the rest of the docment loads --!>
+        <script src="gol.js" defer></script>
+
+    </head>
+
+    <body>
+        <h1>Conway's Game of Life</h1>
+        <canvas id="canvasGol"/> 
+            Your browser does not support canvas.
+        </canvas>
+
+        <br />
+
+        <center>
+            <button id="btnPlay" type="Button">Pause/Play</button>
+            <button id="btnRandom" type="Button">Randomize</button>
+        </center>
+    </body>
+
+</html>
