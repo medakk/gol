@@ -4,8 +4,7 @@
 // Conway's Game of Life Implementation
 
 // Version 0.1
-// Constant grid size. If a cell gets out it is
-// permanently destroyed
+// Cells outside bounds are considered empty
 
 // canvas size
 const WIDTH = 800;
