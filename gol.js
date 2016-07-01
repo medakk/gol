@@ -20,9 +20,7 @@ const GOL_HEIGHT = Math.floor(HEIGHT/GOL_DIV);
 // for drawing
 const CELL_WIDTH = WIDTH/GOL_WIDTH;
 const CELL_HEIGHT = HEIGHT/GOL_HEIGHT;
-
-// half-gap between cells in pixels
-const GAP = 2;
+const GAP = 6; // gap between cells in pixels
 
 // colors
 const COLOR_EMPTY = '#DDDDDD';
@@ -44,7 +42,7 @@ var ctx = canvas.getContext('2d');
 
 // returns a 2D array representing a grid
 // of dimensions h*w
-function create2dArray(w, h) {
+function create2dArray(h, w) {
     var arr = Array(h);
     for(var i=0; i<h; i++) {
         var subArr = Array(w);
@@ -62,8 +60,8 @@ function mod(a, n) {
 }
 
 var gameOfLife = {
-    grid:     create2dArray(GOL_WIDTH, GOL_HEIGHT),
-    nextGrid: create2dArray(GOL_WIDTH, GOL_HEIGHT),
+    grid:     create2dArray(GOL_HEIGHT, GOL_WIDTH),
+    nextGrid: create2dArray(GOL_HEIGHT, GOL_WIDTH),
     isPaused: true,
 
     // draws the given grid onto the canvas
@@ -76,10 +74,10 @@ var gameOfLife = {
                 else
                     ctx.fillStyle = COLOR_ALIVE;
 
-                ctx.fillRect(x*CELL_WIDTH+GAP,
-                             y*CELL_HEIGHT+GAP,
-                             CELL_WIDTH-GAP,
-                             CELL_HEIGHT-GAP);
+                ctx.fillRect(x*CELL_WIDTH+GAP/2,
+                             y*CELL_HEIGHT+GAP/2,
+                             CELL_WIDTH-GAP/2,
+                             CELL_HEIGHT-GAP/2);
             }
         }
 
@@ -104,23 +102,23 @@ var gameOfLife = {
     neighbourCount: function (y, x) {
         var count = 0;
 
-        if(this.grid[mod((y-1), GOL_HEIGHT)][mod((x-1), GOL_WIDTH)])
+        if(this.grid[mod((y-1), GOL_HEIGHT)][mod((x-1), GOL_WIDTH)] == CELL_ALIVE)
             count++;
-        if(this.grid[mod((y-1), GOL_HEIGHT)][x])
+        if(this.grid[mod((y-1), GOL_HEIGHT)][x] == CELL_ALIVE)
             count++;
-        if(this.grid[mod((y-1), GOL_HEIGHT)][mod((x+1), GOL_WIDTH)])
+        if(this.grid[mod((y-1), GOL_HEIGHT)][mod((x+1), GOL_WIDTH)] == CELL_ALIVE)
             count++;
 
-        if(this.grid[y][mod((x-1), GOL_WIDTH)])
+        if(this.grid[y][mod((x-1), GOL_WIDTH)] == CELL_ALIVE)
             count++;
-        if(this.grid[y][mod((x+1), GOL_WIDTH)])
+        if(this.grid[y][mod((x+1), GOL_WIDTH)] == CELL_ALIVE)
             count++;
             
-        if(this.grid[mod((y+1), GOL_HEIGHT)][mod((x-1), GOL_WIDTH)])
+        if(this.grid[mod((y+1), GOL_HEIGHT)][mod((x-1), GOL_WIDTH)] == CELL_ALIVE)
             count++;
         if(this.grid[mod((y+1), GOL_HEIGHT)][x])
             count++;
-        if(this.grid[mod((y+1), GOL_HEIGHT)][mod((x+1), GOL_WIDTH)])
+        if(this.grid[mod((y+1), GOL_HEIGHT)][mod((x+1), GOL_WIDTH)] == CELL_ALIVE)
             count++;
 
         return count;
