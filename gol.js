@@ -1,10 +1,8 @@
-"use strict";
-
 // gol.js
 // Conway's Game of Life Implementation
 
-// Version 0.1
-// Cells outside bounds are considered empty
+// Version 0.2
+// Cells wrap around. Like a torus
 
 // canvas size
 const WIDTH = 800;
@@ -15,7 +13,7 @@ const HEIGHT = 400;
 const UPDATE_RATE = 20;
 
 // GOL size
-const GOL_DIV = 8;
+const GOL_DIV = 16;
 const GOL_WIDTH = Math.floor(WIDTH/GOL_DIV);
 const GOL_HEIGHT = Math.floor(HEIGHT/GOL_DIV);
 
@@ -56,6 +54,11 @@ function create2dArray(w, h) {
     }
 
     return arr;
+}
+
+// custom modulus function. Is always positive
+function mod(a, n) {
+    return ((a%n)+n)%n;
 }
 
 var gameOfLife = {
@@ -101,31 +104,24 @@ var gameOfLife = {
     neighbourCount: function (y, x) {
         var count = 0;
 
-        var notLeftEdge = x!=0;
-        var notRightEdge = x!=GOL_WIDTH-1;
-
-        if(y-1>=0) {
-            if(notLeftEdge && this.grid[y-1][x-1]==CELL_ALIVE)
-                count++;
-            if(notRightEdge && this.grid[y-1][x+1]==CELL_ALIVE)
-                count++;
-            if(this.grid[y-1][x]==CELL_ALIVE)
-                count++;
-        }
-
-        if(notLeftEdge && this.grid[y][x-1]==CELL_ALIVE)
+        if(this.grid[mod((y-1), GOL_HEIGHT)][mod((x-1), GOL_WIDTH)])
             count++;
-        if(notRightEdge && this.grid[y][x+1]==CELL_ALIVE)
+        if(this.grid[mod((y-1), GOL_HEIGHT)][x])
+            count++;
+        if(this.grid[mod((y-1), GOL_HEIGHT)][mod((x+1), GOL_WIDTH)])
             count++;
 
-        if(y+1<GOL_HEIGHT) {
-            if(notLeftEdge && this.grid[y+1][x-1]==CELL_ALIVE)
-                count++;
-            if(notRightEdge && this.grid[y+1][x+1]==CELL_ALIVE)
-                count++;
-            if(this.grid[y+1][x]==CELL_ALIVE)
-                count++;
-        }
+        if(this.grid[y][mod((x-1), GOL_WIDTH)])
+            count++;
+        if(this.grid[y][mod((x+1), GOL_WIDTH)])
+            count++;
+            
+        if(this.grid[mod((y+1), GOL_HEIGHT)][mod((x-1), GOL_WIDTH)])
+            count++;
+        if(this.grid[mod((y+1), GOL_HEIGHT)][x])
+            count++;
+        if(this.grid[mod((y+1), GOL_HEIGHT)][mod((x+1), GOL_WIDTH)])
+            count++;
 
         return count;
     },
@@ -201,7 +197,7 @@ window.addEventListener('keyup', function(e) {
 // the play/pause button
 document.getElementById("btnPlay").onclick = function() {
     gameOfLife.isPaused = !gameOfLife.isPaused;
-}
+};
 
 // the randomize button
 document.getElementById("btnRandom").onclick = function() {
@@ -211,4 +207,4 @@ document.getElementById("btnRandom").onclick = function() {
             gameOfLife.grid[y][x] = Math.random() < 0.25 ? CELL_ALIVE : CELL_EMPTY;
         }
     }
-}
+};
