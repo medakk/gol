@@ -6,17 +6,19 @@ function SparseMatrix(default_val) {
         data: {},
 
         set: function(y, x, val) {
+            y = y.toString();
+            x = x.toString();
             if(val === default_val) {
                 if(this.data[y] == undefined)
                     return;
                 if(this.data[y][x] == undefined)
                     return;
                 delete this.data[y][x];
+            } else {
+                if(this.data[y] == undefined)
+                    this.data[y] = {};
+                this.data[y][x] = val;
             }
-
-            if(this.data[y] == undefined)
-                this.data[y] = {};
-            this.data[y][x] = val;
         },
 
         get: function(y, x) {
