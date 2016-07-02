@@ -6,8 +6,6 @@ function SparseMatrix(default_val) {
         data: {},
 
         set: function(y, x, val) {
-            y = y.toString();
-            x = x.toString();
             if(val === default_val) {
                 if(this.data[y] == undefined)
                     return;
