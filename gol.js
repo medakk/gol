@@ -158,6 +158,7 @@ var gameOfLife = {
         this.iterCount++;
 
         var visited = SparseMatrix(false);
+        this.nextGrid = SparseMatrix(CELL_EMPTY);
         for(var y in this.grid.data) {
             for(var x in this.grid.data[y]) {
                 // stupid stupid stupid
@@ -176,7 +177,8 @@ var gameOfLife = {
             }
         }
 
-        this.swapGrids();
+        //this.swapGrids();
+        this.grid = this.nextGrid;
 
         if(this.isStep) {
             this.isStep = false;
@@ -219,8 +221,8 @@ canvas.addEventListener('click', function(e) {
     var x = e.clientX - rect.left;
     var y = e.clientY - rect.top;
 
-    y = Math.floor(y/CELL_HEIGHT);
-    x = Math.floor(x/CELL_WIDTH);
+    y = Math.floor(y/CELL_HEIGHT) + gameOfLife.yOffset;
+    x = Math.floor(x/CELL_WIDTH)  + gameOfLife.xOffset;
 
     if(gameOfLife.grid.get(y, x)==CELL_EMPTY)
         gameOfLife.grid.set(y, x, CELL_ALIVE);
