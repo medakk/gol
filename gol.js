@@ -10,17 +10,17 @@ const HEIGHT = 400;
 
 // to determine framerate
 // update very UPDATE_RATE ms
-const UPDATE_RATE = 20;
+const UPDATE_RATE = 0;
 
 // GOL size
-const GOL_DIV = 16;
+const GOL_DIV = 8;
 const GOL_WIDTH = Math.floor(WIDTH/GOL_DIV);
 const GOL_HEIGHT = Math.floor(HEIGHT/GOL_DIV);
 
 // for drawing
 const CELL_WIDTH = WIDTH/GOL_WIDTH;
 const CELL_HEIGHT = HEIGHT/GOL_HEIGHT;
-const GAP = 6; // gap between cells in pixels
+const GAP = 1; // gap between cells in pixels
 
 // colors
 const COLOR_EMPTY = '#DDDDDD';
@@ -62,6 +62,11 @@ function mod(a, n) {
 var gameOfLife = {
     grid:     create2dArray(GOL_HEIGHT, GOL_WIDTH),
     nextGrid: create2dArray(GOL_HEIGHT, GOL_WIDTH),
+
+    iterCount: 0,
+    startTime: 0,
+    elapsedTime: 0,
+
     isPaused: true,
 
     // draws the given grid onto the canvas
@@ -137,6 +142,8 @@ var gameOfLife = {
         if(this.isPaused)
             return;
 
+        this.iterCount++;
+
         for(var y=0; y<GOL_HEIGHT; y++) {
             for(var x=0; x<GOL_WIDTH; x++) {
                 var neighbours = this.neighbourCount(y, x);
@@ -158,6 +165,17 @@ var gameOfLife = {
         }
 
         this.swapGrids();
+    },
+
+    togglePause: function() {
+        gameOfLife.isPaused = !gameOfLife.isPaused;
+        if(gameOfLife.isPaused) {
+            this.elapsedTime += (Date.now() - this.startTime)/1000;
+            document.getElementById('txtStats').innerHTML = 
+                'Iterations: ' + this.iterCount + ' | Time elapsed: ' + this.elapsedTime + 's';
+        } else {
+            this.startTime = Date.now();
+        }
     }
 };
 
@@ -193,12 +211,12 @@ window.addEventListener('keyup', function(e) {
 });
 
 // the play/pause button
-document.getElementById("btnPlay").onclick = function() {
-    gameOfLife.isPaused = !gameOfLife.isPaused;
-};
+document.getElementById('btnPlay').onclick = function() {
+    gameOfLife.togglePause();
+}
 
 // the randomize button
-document.getElementById("btnRandom").onclick = function() {
+document.getElementById('btnRandom').onclick = function() {
     for(var y=0; y<GOL_HEIGHT; y++) {
         for(var x=0; x<GOL_WIDTH; x++) {
             // 25% chance of being alive
