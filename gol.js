@@ -180,20 +180,31 @@ var gameOfLife = {
         //this.swapGrids();
         this.grid = this.nextGrid;
 
+        if(this.iterCount%10==0)
+            this.updateStats();
+
         if(this.isStep) {
             this.isStep = false;
             this.togglePause();
         }
     },
 
+    updateStats: function() {
+        var currTime = performance.now()
+        this.elapsedTime += (currTime - this.startTime)/1000;
+        this.startTime = currTime;
+        document.getElementById('txtStats').innerHTML = 
+            'Iterations: ' + this.iterCount + ' | Time elapsed: ' + this.elapsedTime.toFixed(2) + 's';
+    },
+
     togglePause: function() {
         gameOfLife.isPaused = !gameOfLife.isPaused;
         if(gameOfLife.isPaused) {
-            this.elapsedTime += (Date.now() - this.startTime)/1000;
-            document.getElementById('txtStats').innerHTML = 
-                'Iterations: ' + this.iterCount + ' | Time elapsed: ' + this.elapsedTime + 's';
+            this.updateStats();
+            document.getElementById('btnStep').disabled = false;
         } else {
-            this.startTime = Date.now();
+            this.startTime = performance.now();
+            document.getElementById('btnStep').disabled = true;
         }
     },
 
@@ -268,7 +279,8 @@ document.getElementById('btnRandom').onclick = function() {
     for(var y=0; y<GOL_HEIGHT; y++) {
         for(var x=0; x<GOL_WIDTH; x++) {
             // 25% chance of being alive
-            gameOfLife.grid.set(y, x, Math.random() < 0.25 ? CELL_ALIVE : CELL_EMPTY);
+            gameOfLife.grid.set(y+gameOfLife.yOffset, x+gameOfLife.xOffset,
+                                Math.random() < 0.25 ? CELL_ALIVE : CELL_EMPTY);
         }
     }
 };
