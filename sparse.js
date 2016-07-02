@@ -1,3 +1,5 @@
+"use strict";
+
 // sparse.js
 // Creates a sparse matrix
 

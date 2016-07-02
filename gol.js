@@ -1,3 +1,5 @@
+"use strict";
+
 // gol.js
 // Conway's Game of Life Implementation
 
