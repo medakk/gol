@@ -20,14 +20,15 @@
             }
         </style>
 
-        <!-- defer makes the script execute AFTER the rest of the docment loads --!>
+        <!-- defer makes the script execute AFTER the rest of the document loads --!>
+        <script src="sparse.js" defer></script>
         <script src="gol.js" defer></script>
 
     </head>
 
     <body>
         <h1>Conway's Game of Life</h1>
-        <center id="txtStats">Statistics will appear here</center>
+        <center id="txtStats">Statistics will appear here. Use the arrow keys to pan</center>
         <canvas id="canvasGol"/> 
             Your browser does not support canvas.
         </canvas>
@@ -36,6 +37,7 @@
 
         <center>
             <button id="btnPlay" type="Button">Pause/Play</button>
+            <button id="btnStep" type="Button">Step</button>
             <button id="btnRandom" type="Button">Randomize</button>
         </center>
     </body>

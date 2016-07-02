@@ -1,8 +1,8 @@
 // gol.js
 // Conway's Game of Life Implementation
 
-// Version 0.2
-// Cells wrap around. Like a torus
+// Version 0.3
+// Uses a sparse matrix
 
 // canvas size
 const WIDTH = 800;
@@ -13,7 +13,7 @@ const HEIGHT = 400;
 const UPDATE_RATE = 0;
 
 // GOL size
-const GOL_DIV = 8;
+const GOL_DIV = 4;
 const GOL_WIDTH = Math.floor(WIDTH/GOL_DIV);
 const GOL_HEIGHT = Math.floor(HEIGHT/GOL_DIV);
 
@@ -33,39 +33,28 @@ const CELL_ALIVE = 1;
 
 // for input
 const KEY_SPACEBAR = 32;
+const KEY_LEFT     = 37;
+const KEY_UP       = 38;
+const KEY_RIGHT    = 39;
+const KEY_DOWN     = 40;
 
 // obtain canvas and context from the DOM
 var canvas = document.getElementById('canvasGol');
-canvas.width=WIDTH;
-canvas.height=HEIGHT;
+canvas.width = WIDTH;
+canvas.height = HEIGHT;
 var ctx = canvas.getContext('2d');
 
-// returns a 2D array representing a grid
-// of dimensions h*w
-function create2dArray(h, w) {
-    var arr = Array(h);
-    for(var i=0; i<h; i++) {
-        var subArr = Array(w);
-        for(var j=0; j<w; j++)
-            subArr[j] = CELL_EMPTY;
-        arr[i] = subArr;
-    }
-
-    return arr;
-}
-
-// custom modulus function. Is always positive
-function mod(a, n) {
-    return ((a%n)+n)%n;
-}
-
 var gameOfLife = {
-    grid:     create2dArray(GOL_HEIGHT, GOL_WIDTH),
-    nextGrid: create2dArray(GOL_HEIGHT, GOL_WIDTH),
+    grid:     SparseMatrix(CELL_EMPTY),
+    nextGrid: SparseMatrix(CELL_EMPTY),
 
     iterCount: 0,
     startTime: 0,
     elapsedTime: 0,
+
+    //used for panning
+    xOffset: 0,
+    yOffset: 0,
 
     isPaused: true,
 
@@ -74,7 +63,7 @@ var gameOfLife = {
         ctx.clearRect(0, 0, WIDTH, HEIGHT);
         for(var y=0; y<GOL_HEIGHT; y++) {
             for(var x=0; x<GOL_WIDTH; x++) {
-                if(this.grid[y][x]==CELL_EMPTY)
+                if(this.grid.get(y+this.yOffset, x+this.xOffset)==CELL_EMPTY)
                     ctx.fillStyle = COLOR_EMPTY;
                 else
                     ctx.fillStyle = COLOR_ALIVE;
@@ -107,23 +96,23 @@ var gameOfLife = {
     neighbourCount: function (y, x) {
         var count = 0;
 
-        if(this.grid[mod((y-1), GOL_HEIGHT)][mod((x-1), GOL_WIDTH)] == CELL_ALIVE)
+        if(this.grid.get(y-1, x-1) == CELL_ALIVE)
             count++;
-        if(this.grid[mod((y-1), GOL_HEIGHT)][x] == CELL_ALIVE)
+        if(this.grid.get(y-1, x) == CELL_ALIVE)
             count++;
-        if(this.grid[mod((y-1), GOL_HEIGHT)][mod((x+1), GOL_WIDTH)] == CELL_ALIVE)
+        if(this.grid.get(y-1, x+1) == CELL_ALIVE)
             count++;
 
-        if(this.grid[y][mod((x-1), GOL_WIDTH)] == CELL_ALIVE)
+        if(this.grid.get(y, x-1) == CELL_ALIVE)
             count++;
-        if(this.grid[y][mod((x+1), GOL_WIDTH)] == CELL_ALIVE)
+        if(this.grid.get(y, x+1) == CELL_ALIVE)
             count++;
             
-        if(this.grid[mod((y+1), GOL_HEIGHT)][mod((x-1), GOL_WIDTH)] == CELL_ALIVE)
+        if(this.grid.get(y+1, x-1) == CELL_ALIVE)
             count++;
-        if(this.grid[mod((y+1), GOL_HEIGHT)][x])
+        if(this.grid.get(y+1, x))
             count++;
-        if(this.grid[mod((y+1), GOL_HEIGHT)][mod((x+1), GOL_WIDTH)] == CELL_ALIVE)
+        if(this.grid.get(y+1, x+1) == CELL_ALIVE)
             count++;
 
         return count;
@@ -136,35 +125,63 @@ var gameOfLife = {
         this.nextGrid = tmp;
     },
 
+    // evaluates a cell
+    evalCell: function(y, x, visited) {
+        if(visited.get(y,x)) {
+            return;
+        }
+        visited.set(y,x,true);
+
+        var neighbours = this.neighbourCount(y, x);
+
+        if(this.grid.get(y, x)==CELL_EMPTY) {
+            if(neighbours==3)
+                this.nextGrid.set(y, x, CELL_ALIVE);
+            else
+                this.nextGrid.set(y, x, CELL_EMPTY);
+        } else {
+            if(neighbours<=1)
+                this.nextGrid.set(y, x, CELL_EMPTY);
+            else if(neighbours<=3)
+                this.nextGrid.set(y, x, CELL_ALIVE);
+            else
+                this.nextGrid.set(y, x, CELL_EMPTY);
+        }
+    },
+
     // goes through the grid and stores the
-    // next state in nextGrid
+    // next state in nextGrid. Finally, swaps
+    // the grid and newGrid
     tick: function() {
         if(this.isPaused)
             return;
-
         this.iterCount++;
 
-        for(var y=0; y<GOL_HEIGHT; y++) {
-            for(var x=0; x<GOL_WIDTH; x++) {
-                var neighbours = this.neighbourCount(y, x);
+        var visited = SparseMatrix(false);
+        for(var y in this.grid.data) {
+            for(var x in this.grid.data[y]) {
+                // stupid stupid stupid
+                y = Number(y);
+                x = Number(x);
 
-                if(this.grid[y][x]==CELL_EMPTY) {
-                    if(neighbours==3)
-                        this.nextGrid[y][x] = CELL_ALIVE;
-                    else
-                        this.nextGrid[y][x] = CELL_EMPTY;
-                } else {
-                    if(neighbours<=1)
-                        this.nextGrid[y][x] = CELL_EMPTY;
-                    else if(neighbours<=3)
-                        this.nextGrid[y][x] = CELL_ALIVE;
-                    else
-                        this.nextGrid[y][x] = CELL_EMPTY;
-                }
+                this.evalCell(y-1, x-1, visited);
+                this.evalCell(y-1, x  , visited);
+                this.evalCell(y-1, x+1, visited);
+                this.evalCell(y  , x-1, visited);
+                this.evalCell(y  , x  , visited);
+                this.evalCell(y  , x+1, visited);
+                this.evalCell(y+1, x-1, visited);
+                this.evalCell(y+1, x  , visited);
+                this.evalCell(y+1, x+1, visited);
             }
         }
 
         this.swapGrids();
+
+        if(this.isStep) {
+            this.isStep = false;
+            this.togglePause();
+        }
     },
 
     togglePause: function() {
@@ -176,6 +193,13 @@ var gameOfLife = {
         } else {
             this.startTime = Date.now();
         }
+    },
+
+    step: function() {
+        if(!this.isPaused)
+            return;
+        this.isStep = true;
+        this.togglePause();
     }
 };
 
@@ -198,16 +222,33 @@ canvas.addEventListener('click', function(e) {
     y = Math.floor(y/CELL_HEIGHT);
     x = Math.floor(x/CELL_WIDTH);
 
-    if(gameOfLife.grid[y][x]==CELL_EMPTY)
-        gameOfLife.grid[y][x] = CELL_ALIVE;
+    if(gameOfLife.grid.get(y, x)==CELL_EMPTY)
+        gameOfLife.grid.set(y, x, CELL_ALIVE);
     else
-        gameOfLife.grid[y][x] = CELL_EMPTY;
+        gameOfLife.grid.set(y, x, CELL_EMPTY);
 });
 
 // spacebar for pause/unpause
-window.addEventListener('keyup', function(e) {
-    if(e.keyCode==KEY_SPACEBAR)
-        gameOfLife.isPaused = !gameOfLife.isPaused;
+window.addEventListener('keydown', function(e) {
+    switch(e.keyCode) {
+    case KEY_SPACEBAR:
+        gameOfLife.togglePause();
+        break;
+    case KEY_LEFT:
+        gameOfLife.xOffset--;
+        break;
+    case KEY_RIGHT:
+        gameOfLife.xOffset++;
+        break;
+    case KEY_UP:
+        gameOfLife.yOffset--;
+        break;
+    case KEY_DOWN:
+        gameOfLife.yOffset++;
+        break;
+    default:
+        break;
+    }
 });
 
 // the play/pause button
@@ -215,12 +256,17 @@ document.getElementById('btnPlay').onclick = function() {
     gameOfLife.togglePause();
 }
 
+// the step button
+document.getElementById('btnStep').onclick = function() {
+    gameOfLife.step();
+}
+
 // the randomize button
 document.getElementById('btnRandom').onclick = function() {
     for(var y=0; y<GOL_HEIGHT; y++) {
         for(var x=0; x<GOL_WIDTH; x++) {
             // 25% chance of being alive
-            gameOfLife.grid[y][x] = Math.random() < 0.25 ? CELL_ALIVE : CELL_EMPTY;
+            gameOfLife.grid.set(y, x, Math.random() < 0.25 ? CELL_ALIVE : CELL_EMPTY);
         }
     }
 };
