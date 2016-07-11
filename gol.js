@@ -48,7 +48,7 @@ var ctx = canvas.getContext('2d');
 
 var gameOfLife = {
     grid:     SparseMatrix(CELL_EMPTY),
-    nextGrid: SparseMatrix(CELL_EMPTY),
+    newGrid:  undefined, // Is initialized in tick()
 
     iterCount: 0,
     startTime: 0,
@@ -100,19 +100,19 @@ var gameOfLife = {
 
         if(this.grid.get(y-1, x-1) == CELL_ALIVE)
             count++;
-        if(this.grid.get(y-1, x) == CELL_ALIVE)
+        if(this.grid.get(y-1, x)   == CELL_ALIVE)
             count++;
         if(this.grid.get(y-1, x+1) == CELL_ALIVE)
             count++;
 
-        if(this.grid.get(y, x-1) == CELL_ALIVE)
+        if(this.grid.get(y, x-1)   == CELL_ALIVE)
             count++;
-        if(this.grid.get(y, x+1) == CELL_ALIVE)
+        if(this.grid.get(y, x+1)   == CELL_ALIVE)
             count++;
             
         if(this.grid.get(y+1, x-1) == CELL_ALIVE)
             count++;
-        if(this.grid.get(y+1, x))
+        if(this.grid.get(y+1, x)   == CELL_ALIVE)
             count++;
         if(this.grid.get(y+1, x+1) == CELL_ALIVE)
             count++;
@@ -120,12 +120,6 @@ var gameOfLife = {
         return count;
     },
 
-    // swaps grid and nextGrid
-    swapGrids: function() {
-        var tmp = this.grid;
-        this.grid = this.nextGrid;
-        this.nextGrid = tmp;
-    },
 
     // evaluates a cell
     evalCell: function(y, x, visited) {
@@ -152,8 +146,7 @@ var gameOfLife = {
     },
 
     // goes through the grid and stores the
-    // next state in nextGrid. Finally, swaps
-    // the grid and newGrid
+    // next state in nextGrid. 
     tick: function() {
         if(this.isPaused)
             return;
@@ -179,7 +172,6 @@ var gameOfLife = {
             }
         }
 
-        //this.swapGrids();
         this.grid = this.nextGrid;
 
         if(this.iterCount%10==0)
